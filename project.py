@@ -222,15 +222,12 @@ def showCategories():
 @app.route('/catalog/<string:category_name>/items/')
 def showItems(category_name):
     category = session.query(Category).filter_by(name=category_name).one()
-    creator = getUserInfo(category.user_id)
-    items = session.query(Item).filter_by(
-        category_name=category_name).all()
-    if 'username' not in login_session or creator.id != login_session['user_id']:
-        return render_template('publicitems.html', items=items,
-                               category=category, creator=creator)
+    if 'username' not in login_session or category.user.id != login_session['user_id']:
+        return render_template('publicitems.html', items=category.items,
+                               category=category, creator=category.user)
     else:
-        return render_template('items.html', items=items,
-                               category=category, creator=creator)
+        return render_template('items.html', items=category.items,
+                               category=category, creator=category.user)
 
 
 # Create a new item
@@ -253,13 +250,12 @@ def newItem(category_name):
 
 
 # Edit an item
-@app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
-def editItem(category_id, item_id):
+@app.route('/catalog/<string:category_name>/<string:item_name>/edit', methods=['GET', 'POST'])
+def editItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
-    editedItem = session.query(Item).filter_by(id=item_id).one()
-    category = session.query(Category).filter_by(id=category_id).one()
-    if login_session['user_id'] != category.user_id:
+    editedItem = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
+    if login_session['user_id'] != editedItem.category.user_id:
         # TODO update these one liner scripts and conform them to PEP8
         return "<script>function myFunction() {alert('You are not authorized to edit menu items to this restaurant. Please create your own restaurant in order to edit items.');}</script><body onload='myFunction()'>"
     if request.method == 'POST':
@@ -270,25 +266,26 @@ def editItem(category_id, item_id):
         session.add(editedItem)
         session.commit()
         flash('Item Successfully Edited')
-        return redirect(url_for('showItems', category_id=category_id))
+        return redirect(url_for('showItems', category_name=editedItem.category.name))
     else:
-        return render_template('edititem.html', category_id=category_id, item_id=item_id, item=editedItem)
+        return render_template('edititem.html',  # category_id=editedItem.category_id, item_id=item_id, 
+            item=editedItem)
 
 
 # Delete a menu item
-@app.route('/catalog/<string:item_name>/delete', methods=['GET', 'POST'])
-def deleteItem(restaurant_id, item_id):
+@app.route('/catalog/<string:category_name>/<string:item_name>/delete', methods=['GET', 'POST'])
+def deleteItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
     category = session.query(Category).filter_by(id=category_id).one()
-    itemToDelete = session.query(Item).filter_by(id=item_id).one()
+    itemToDelete = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
     if login_session['user_id'] != category.user_id:
         return "<script>function myFunction() {alert('You are not authorized to delete menu items to this restaurant. Please create your own restaurant in order to delete items.');}</script><body onload='myFunction()'>"
     if request.method == 'POST':
         session.delete(itemToDelete)
         session.commit()
         flash('Item Successfully Deleted')
-        return redirect(url_for('showItems', category_id=category_id))
+        return redirect(url_for('showItems', category_name=category_name))
     else:
         return render_template('deleteItem.html', item=itemToDelete)
 
