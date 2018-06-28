@@ -23,7 +23,7 @@ APPLICATION_NAME = "Item Catalog Application"
 
 # Connect to Database and create database session
 engine = create_engine('sqlite:///itemcatalog.db',
-                       connect_args={'check_same_thread': False})
+                       connect_args={'check_same_thread': False}, echo=True)
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -211,6 +211,7 @@ def catalogJSON():
 @app.route('/catalog/')
 def showCategories():
     categories = session.query(Category).order_by(asc(Category.name))
+    return render_template('catalog.html', categories=categories)
     if 'username' not in login_session:
         return render_template('publiccatalog.html', categories=categories)
     else:
@@ -222,12 +223,19 @@ def showCategories():
 @app.route('/catalog/<string:category_name>/items/')
 def showItems(category_name):
     category = session.query(Category).filter_by(name=category_name).one()
-    if 'username' not in login_session or category.user.id != login_session['user_id']:
-        return render_template('publicitems.html', items=category.items,
+    return render_template('items.html', items=category.items,
                                category=category, creator=category.user)
+
+# Item description page
+@app.route('/catalog/<string:category_name>/<string:item_name>/', methods=['GET', 'POST'])
+def showItemDetails(category_name, item_name):
+    item = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
+    category = item.category
+    if login_session.get('user_id') == item.category.user_id:
+        owner = True
     else:
-        return render_template('items.html', items=category.items,
-                               category=category, creator=category.user)
+        owner = False
+    return render_template('itemdetails.html', item=item, owner=owner)
 
 
 # Create a new item
@@ -244,9 +252,9 @@ def newItem(category_name):
             session.add(newItem)
             session.commit()
             flash('New %s Item Successfully Created' % (newItem.name))
-            return redirect(url_for('showItems', category_id=category_id))
+            return redirect(url_for('showItems', category_id=category.id))
     else:
-        return render_template('newmitem.html', category_id=category_id)
+        return render_template('newitem.html', category_id=category.id)
 
 
 # Edit an item

@@ -3,6 +3,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
+from datetime import time
 
 Base = declarative_base()
 
@@ -24,6 +25,7 @@ class Category(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
     items = relationship("Item", back_populates='category')
+    # add last updated timestamp
 
     @property
     def serialize(self):
@@ -44,6 +46,7 @@ class Item(Base):
     category = relationship("Category", back_populates='items')
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
+    # add last updated timestamp
 
     @property
     def serialize(self):

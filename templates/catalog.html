@@ -17,7 +17,7 @@
 	</div>
 
 <div class = 'flash'>
-		      {% with messages = get_flashed_messages() %}
+	{% with messages = get_flashed_messages() %}
       {% if messages %}
           
         <ul>
@@ -31,7 +31,7 @@
 </div>
 	
 	{% for category in categories %}
-		<a href = "{{url_for('showItem', category_name = category.name)}}">
+		<a href = "{{url_for('showItems', category_name = category.name)}}">
 			<div class="row">
 				<div class="col-md-1"></div>
 					<div class="col-md-10 category-list">

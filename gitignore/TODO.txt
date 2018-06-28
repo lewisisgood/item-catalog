@@ -1,0 +1,4 @@
+add timestamps for items (last_updated)
+implement latest items
+update flash messages (or delete them)
+fix gconnect
