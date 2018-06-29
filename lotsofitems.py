@@ -87,8 +87,8 @@ category6 = Category(user_id=1, name="Squash")
 session.add(category6)
 session.commit()
 
-# Items for Bocceball
-category7 = Category(user_id=1, name="Bocceball")
+# Items for Bocce ball
+category7 = Category(user_id=1, name="Bocce ball")
 
 session.add(category7)
 session.commit()
