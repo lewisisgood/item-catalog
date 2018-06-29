@@ -212,10 +212,6 @@ def catalogJSON():
 def showCategories():
     categories = session.query(Category).order_by(asc(Category.name))
     return render_template('catalog.html', categories=categories)
-    if 'username' not in login_session:
-        return render_template('publiccatalog.html', categories=categories)
-    else:
-        return render_template('catalog.html', categories=categories)
 
 
 # Show a category's items

@@ -65,4 +65,34 @@ item1 = Item(user_id=1, name="Tennis ball", description="To hit",
 session.add(item1)
 session.commit()
 
+# Items for Baseball
+category3 = Category(user_id=1, name="Baseball")
+
+session.add(category3)
+session.commit()
+
+# Items for Basketball
+category4 = Category(user_id=1, name="Basketball")
+
+session.add(category4)
+session.commit()
+
+# Items for Football
+category5 = Category(user_id=1, name="Football")
+session.add(category5)
+session.commit()
+
+# Items for Squash
+category6 = Category(user_id=1, name="Squash")
+
+session.add(category6)
+session.commit()
+
+# Items for Rugby
+category7 = Category(user_id=1, name="Rugby")
+
+session.add(category7)
+session.commit()
+
+
 print "added categories and items!"
