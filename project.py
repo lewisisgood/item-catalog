@@ -1,7 +1,12 @@
 """Xxx."""
 
-from flask import Flask, render_template, request, redirect, jsonify, url_for
-# from flask import flash
+from flask import Flask,\
+    render_template,\
+    request,\
+    redirect,\
+    jsonify,\
+    url_for,\
+    flash
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item, User
@@ -55,7 +60,7 @@ def gconnect():
     code = request.data
 
     try:
-        # Upgrade the authorization code into a credentials object
+    # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
@@ -227,7 +232,9 @@ def showItems(category_name):
 def showItemDetails(category_name, item_name):
     item = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
     category = item.category
-    if login_session.get('user_id') == item.category.user_id:
+    print("\n\n\n" + str(item.category.user_id) + "\n\n\n")
+    print(str(login_session.get('user_id')) + "\n\n\n")
+    if login_session.get('user_id') == item.user_id:
         owner = True
     else:
         owner = False
@@ -240,6 +247,23 @@ def newItem(category_name):
     if 'username' not in login_session:
         return redirect('/login')
     category = session.query(Category).filter_by(name=category_name).one()
+    if request.method == 'POST':
+        """
+        item_exists = session.query(Item).filter_by(name=request.form['name']).one_or_none()
+        print item_exists
+        if item_exists:
+            flash('Item already exists, try again please!')
+            return render_template('newitem.html', category_id=category.id)
+        """
+        newItem = Item(name=request.form['name'], description=request.form['description'],
+                       category_id=category.id, user_id=login_session.get('user_id'))
+        session.add(newItem)
+        session.commit()
+        flash('New %s Item Successfully Created' % (newItem.name))
+        return redirect(url_for('showItems', category_name=category.name))
+    else:
+        return render_template('newitem.html', category_id=category.id)
+    """
     if login_session['user_id'] != category.user_id:
         return "<script>function myFunction() {alert('You are not authorized to add menu items to this restaurant. Please create your own restaurant in order to edit items.');}</script><body onload='myFunction()'>"
         if request.method == 'POST':
@@ -251,7 +275,7 @@ def newItem(category_name):
             return redirect(url_for('showItems', category_id=category.id))
     else:
         return render_template('newitem.html', category_id=category.id)
-
+    """
 
 # Edit an item
 @app.route('/catalog/<string:category_name>/<string:item_name>/edit', methods=['GET', 'POST'])
@@ -259,7 +283,7 @@ def editItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
     editedItem = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
-    if login_session['user_id'] != editedItem.category.user_id:
+    if login_session['user_id'] != editedItem.user_id:
         # TODO update these one liner scripts and conform them to PEP8
         return "<script>function myFunction() {alert('You are not authorized to edit menu items to this restaurant. Please create your own restaurant in order to edit items.');}</script><body onload='myFunction()'>"
     if request.method == 'POST':
@@ -281,9 +305,9 @@ def editItem(category_name, item_name):
 def deleteItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
-    category = session.query(Category).filter_by(id=category_id).one()
+    category = session.query(Category).filter_by(name=category_name).one()
     itemToDelete = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
-    if login_session['user_id'] != category.user_id:
+    if login_session['user_id'] != itemToDelete.user_id:
         return "<script>function myFunction() {alert('You are not authorized to delete menu items to this restaurant. Please create your own restaurant in order to delete items.');}</script><body onload='myFunction()'>"
     if request.method == 'POST':
         session.delete(itemToDelete)
@@ -308,10 +332,10 @@ def disconnect():
         del login_session['user_id']
         del login_session['provider']
         flash("You have successfully been logged out.")
-        return redirect(url_for('showCatalog'))
+        return redirect(url_for('showCategories'))
     else:
         flash("You were not logged in")
-        return redirect(url_for('showCatalog'))
+        return redirect(url_for('showCategories'))
 
 
 if __name__ == '__main__':

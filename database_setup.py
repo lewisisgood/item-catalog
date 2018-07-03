@@ -25,7 +25,6 @@ class Category(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
     items = relationship("Item", back_populates='category')
-    # add last updated timestamp
 
     @property
     def serialize(self):

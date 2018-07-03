@@ -1,20 +1,9 @@
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
-	
+
 	<div class="row divider green">
 		<div class="col-md-12"></div>
-	</div>
-	<div class="row banner menu">
-		<div class="col-md-11 col-md-offset-1 padding-none">
-			<h1>{{ category.name }}
-			<figure class="creator">
-				<img src="{{ creator.picture}}">
-				<figcaption>{{ creator.name }}</figcaption>
-			</figure>
-			</h1>
-
-		</div>
 	</div>
 	<div class="row padding-top padding-bottom">
 		<div class="col-md-1"></div>
@@ -34,6 +23,9 @@
 					</ul>
 				{% endif %}
 			{% endwith %}
+		</div>
+		<div class = 'add-item'>
+			<a href = "{{url_for('newItem', category_name = category.name)}}"><p>add new item</p></a>
 		</div>
 	</div>
 	{% if items !=[] %}	

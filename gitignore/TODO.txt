@@ -1,4 +1,6 @@
+edit/delete on itemdetails
+	missing/not working right now
+
+skipping for first submission
 add timestamps for items (last_updated)
 implement latest items
-update flash messages (or delete them)
-fix gconnect
