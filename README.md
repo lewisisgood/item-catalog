@@ -28,13 +28,13 @@ Move into the new directory:
 cd item-catalog/
 ```
 
-Create the database, and add categories and items:
+Create the database:
 
 ```
 python database_setup.py
 ```
 
-Run the program with:
+Load the database with items:
 
 ```
 python lotsofitems.py

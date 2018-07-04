@@ -7,11 +7,10 @@
 	</div>
 	<div class="row padding-top padding-bottom">
 		<div class="col-md-1"></div>
-		<div class="col-md-11 padding-none">
-			
-		</div>
+		<div class="col-md-11 padding-none"></div>
 		<div class="col-md-7"></div>
 	</div>
+
 	<div class="row">
 		<div class="col-md-12">
 			{% with messages = get_flashed_messages() %}
@@ -24,16 +23,16 @@
 				{% endif %}
 			{% endwith %}
 		</div>
-		<div class = 'add-item'>
+		<div class = "add-item">
 			<a href = "{{url_for('newItem', category_name = category.name)}}"><p>add new item</p></a>
 		</div>
 	</div>
+
 	{% if items !=[] %}	
 		<div class="row">
 			{% for i in items %}
 				<div class="item">
 					<a href = '{{url_for('showItemDetails', category_name = category.name, item_name=i.name ) }}'><h3>{{i.name}}</h3></a>
-
 				</div>
 			{% endfor %}
 		</div>
