@@ -1,7 +1,9 @@
 # Item Catalog
 Source code for a item catalog tool.
 
-Item Catalog is a web application that provides a list of items within a variety of categories, and integrates third party user registration and authentication. Authenticated users have the ability to post, edit, and delete their own items.
+Item Catalog is a web application that provides a list of items within a variety of categories, and integrates third party user registration and authentication. Authenticated users have the ability to add, edit, and delete their own items to a set of pre-determined categories.
+
+A JSON API is accessible for the whole catalog at http://localhost:8000/catalog.json , and for items in a category at http://localhost:8000/catalog/`category_name`/items.json , where category_name is substituted for a category e.g. Soccer.
 
 
 ### Prerequesites
@@ -26,10 +28,16 @@ Move into the new directory:
 cd item-catalog/
 ```
 
-Add your client_secrets.json file here:
+Create the database, and add categories and items:
 
 ```
-xxx
+python database_setup.py
+```
+
+Run the program with:
+
+```
+python lotsofitems.py
 ```
 
 Run the program with:
@@ -38,7 +46,7 @@ Run the program with:
 python project.py
 ```
 
-Naviage to http://localhost:8080/ to log in and interact with the item catalog.
+Naviage to http://localhost:8000/ to log in and interact with the item catalog.
 
 
 ## Built With
@@ -53,6 +61,7 @@ Naviage to http://localhost:8080/ to log in and interact with the item catalog.
 ## Authors
 
 * **Lewis King** - [Github](https://github.com/lewisisgood)
+
 
 ## Acknowledgments
 
