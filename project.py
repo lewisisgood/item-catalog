@@ -1,4 +1,10 @@
-"""Xxx."""
+"""
+project.py: a general catalog for organizing and describing items.
+
+Allow users to perform CRUD operations on items from pre-set categories.
+
+Allow user to login with Google account to create, update, or delete items.
+"""
 
 from flask import Flask,\
     render_template,\
@@ -35,9 +41,9 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-# Create anti-forgery state token
 @app.route('/login')
 def showLogin():
+    """Create anti-forgery state token."""
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
@@ -47,7 +53,7 @@ def showLogin():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
-    # Validate state token
+    """Validate state token."""
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -119,7 +125,7 @@ def gconnect():
     # ADD PROVIDER TO LOGIN SESSION
     login_session['provider'] = 'google'
 
-    # see if user exists, if it doesn't make a new one
+    # See if user exists, if it doesn't make a new one
     user_id = getUserID(data["email"])
     if not user_id:
         user_id = createUser(login_session)
@@ -137,10 +143,10 @@ def gconnect():
     print "done!"
     return output
 
+
 # User Helper Functions
-
-
 def createUser(login_session):
+    """Create a new user in the database."""
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
     session.add(newUser)
@@ -150,23 +156,24 @@ def createUser(login_session):
 
 
 def getUserInfo(user_id):
+    """Retrieve an existing user's information."""
     user = session.query(User).filter_by(id=user_id).one()
     return user
 
 
 def getUserID(email):
+    """Retrieve an existing user's id."""
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
     except:
         return None
 
+
 # DISCONNECT - Revoke a current user's token and reset their login_session
-
-
 @app.route('/gdisconnect')
 def gdisconnect():
-    # Only disconnect a connected user.
+    """Disconnects a connected user."""
     access_token = login_session.get('access_token')
     if access_token is None:
         response = make_response(
@@ -188,48 +195,47 @@ def gdisconnect():
         return response
 
 
-# JSON APIs to view Category's Items Information
 @app.route('/catalog/<string:category_name>/items.json')
-def itemsJSON(category_id):
-    category = session.query(Category).filter_by(id=category_id).one()
-    items = session.query(Item).filter_by(
-        category_id=category_id).all()
+def itemsJSON(category_name):
+    """JSON API to view Category Information."""
+    category = session.query(Category).filter_by(name=category_name).one()
+    name = category.name
+    items = session.query(Item).filter(Category.name == category_name).all()
     return jsonify(Items=[i.serialize for i in items])
 
 
 @app.route('/catalog.json')
 def catalogJSON():
+    """JSON API to view Category's Item Information."""
     catalog = session.query(Category).all()
     return jsonify(catalog=[c.serialize for c in catalog])
 
 
 # Show all categories aka catalog
-# TODO implement "latest 9 items edited" in RHS column
 @app.route('/')
 @app.route('/catalog/')
 def showCategories():
+    """Return all item information in JSON."""
     categories = session.query(Category).order_by(asc(Category.name))
     return render_template('catalog.html', categories=categories)
 
 
-# Show a category's items
 @app.route('/catalog/<string:category_name>/')
 @app.route('/catalog/<string:category_name>/items/')
 def showItems(category_name):
+    """Show a category's items."""
     category = session.query(Category).filter_by(name=category_name).one()
     return render_template('items.html', items=category.items,
                            category=category, creator=category.user)
 
 
-# Item description page
 @app.route('/catalog/<string:category_name>/<string:item_name>/',
            methods=['GET', 'POST'])
 def showItemDetails(category_name, item_name):
+    """Show a category's items."""
     item = session.query(Item).filter(Item.name == item_name,
                                       Category.name == category_name).one()
     category = item.category
-    print("\n\n\n" + str(item.category.user_id) + "\n\n\n")
-    print(str(login_session.get('user_id')) + "\n\n\n")
     if login_session.get('user_id') == item.user_id:
         owner = True
     else:
@@ -237,10 +243,10 @@ def showItemDetails(category_name, item_name):
     return render_template('itemdetails.html', item=item, owner=owner)
 
 
-# Create a new item
 @app.route('/catalog/<string:category_name>/item/new/',
            methods=['GET', 'POST'])
 def newItem(category_name):
+    """Allow logged in user to add an item for a category."""
     if 'username' not in login_session:
         return redirect('/login')
     category = session.query(Category).filter_by(name=category_name).one()
@@ -261,6 +267,7 @@ def newItem(category_name):
 @app.route('/catalog/<string:category_name>/<string:item_name>/edit',
            methods=['GET', 'POST'])
 def editItem(category_name, item_name):
+    """Allow logged in user to edit an item for a category."""
     if 'username' not in login_session:
         return redirect('/login')
     editedItem = session.query(Item).filter(Item.name == item_name,
@@ -288,6 +295,7 @@ def editItem(category_name, item_name):
 @app.route('/catalog/<string:category_name>/<string:item_name>/delete',
            methods=['GET', 'POST'])
 def deleteItem(category_name, item_name):
+    """Allow logged in user to delete an item for a category."""
     if 'username' not in login_session:
         return redirect('/login')
     category = session.query(Category).filter_by(name=category_name).one()
@@ -307,9 +315,9 @@ def deleteItem(category_name, item_name):
         return render_template('deleteItem.html', item=itemToDelete)
 
 
-# Disconnect based on provider
 @app.route('/disconnect')
 def disconnect():
+    """Disconnect based on provider."""
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
@@ -329,5 +337,5 @@ def disconnect():
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
-    app.debug = True
+    # app.debug = True
     app.run(host='0.0.0.0', port=8000)
