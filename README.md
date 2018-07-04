@@ -13,6 +13,8 @@ python --version
 git --version
 ```
 
+This program needs to be run with many software packages. Ideally, run this app in the [Udacity VM](https://github.com/udacity/fullstack-nanodegree-vm).
+
 
 ### Installing
 
