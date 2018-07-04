@@ -35,11 +35,6 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-# ###################################OAUTH################################### #
-# ###################################OAUTH################################### #
-# ###################################OAUTH################################### #
-# ###################################OAUTH################################### #
-# ###################################OAUTH################################### #
 # Create anti-forgery state token
 @app.route('/login')
 def showLogin():
@@ -48,6 +43,7 @@ def showLogin():
     login_session['state'] = state
     # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=state, CLIENT_ID=CLIENT_ID)
+
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
@@ -58,9 +54,8 @@ def gconnect():
         return response
     # Obtain authorization code
     code = request.data
-
     try:
-    # Upgrade the authorization code into a credentials object
+        # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
@@ -101,7 +96,8 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
+        response = make_response(json.dumps(
+                                 'Current user is already connected.'),
                                  200)
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -135,7 +131,8 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;\
+                -webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     print "done!"
     return output
@@ -184,15 +181,11 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
     else:
-        response = make_response(json.dumps('Failed to revoke token for given user.', 400))
+        response = make_response(json.dumps(
+                                            'Failed to revoke token \
+                                            for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
         return response
-
-# ###################################OAUTH################################### #
-# ###################################OAUTH################################### #
-# ###################################OAUTH################################### #
-# ###################################OAUTH################################### #
-# ###################################OAUTH################################### #
 
 
 # JSON APIs to view Category's Items Information
@@ -225,12 +218,15 @@ def showCategories():
 def showItems(category_name):
     category = session.query(Category).filter_by(name=category_name).one()
     return render_template('items.html', items=category.items,
-                               category=category, creator=category.user)
+                           category=category, creator=category.user)
+
 
 # Item description page
-@app.route('/catalog/<string:category_name>/<string:item_name>/', methods=['GET', 'POST'])
+@app.route('/catalog/<string:category_name>/<string:item_name>/',
+           methods=['GET', 'POST'])
 def showItemDetails(category_name, item_name):
-    item = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
+    item = session.query(Item).filter(Item.name == item_name,
+                                      Category.name == category_name).one()
     category = item.category
     print("\n\n\n" + str(item.category.user_id) + "\n\n\n")
     print(str(login_session.get('user_id')) + "\n\n\n")
@@ -242,50 +238,38 @@ def showItemDetails(category_name, item_name):
 
 
 # Create a new item
-@app.route('/catalog/<string:category_name>/item/new/', methods=['GET', 'POST'])
+@app.route('/catalog/<string:category_name>/item/new/',
+           methods=['GET', 'POST'])
 def newItem(category_name):
     if 'username' not in login_session:
         return redirect('/login')
     category = session.query(Category).filter_by(name=category_name).one()
     if request.method == 'POST':
-        """
-        item_exists = session.query(Item).filter_by(name=request.form['name']).one_or_none()
-        print item_exists
-        if item_exists:
-            flash('Item already exists, try again please!')
-            return render_template('newitem.html', category_id=category.id)
-        """
-        newItem = Item(name=request.form['name'], description=request.form['description'],
-                       category_id=category.id, user_id=login_session.get('user_id'))
+        newItem = Item(name=request.form['name'],
+                       description=request.form['description'],
+                       category_id=category.id,
+                       user_id=login_session.get('user_id'))
         session.add(newItem)
         session.commit()
         flash('New %s Item Successfully Created' % (newItem.name))
         return redirect(url_for('showItems', category_name=category.name))
     else:
         return render_template('newitem.html', category_id=category.id)
-    """
-    if login_session['user_id'] != category.user_id:
-        return "<script>function myFunction() {alert('You are not authorized to add menu items to this restaurant. Please create your own restaurant in order to edit items.');}</script><body onload='myFunction()'>"
-        if request.method == 'POST':
-            newItem = Item(name=request.form['name'], description=request.form['description'],
-                           category_id=category_id, user_id=category.user_id)
-            session.add(newItem)
-            session.commit()
-            flash('New %s Item Successfully Created' % (newItem.name))
-            return redirect(url_for('showItems', category_id=category.id))
-    else:
-        return render_template('newitem.html', category_id=category.id)
-    """
+
 
 # Edit an item
-@app.route('/catalog/<string:category_name>/<string:item_name>/edit', methods=['GET', 'POST'])
+@app.route('/catalog/<string:category_name>/<string:item_name>/edit',
+           methods=['GET', 'POST'])
 def editItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
-    editedItem = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
+    editedItem = session.query(Item).filter(Item.name == item_name,
+                                            Category.name ==
+                                            category_name).one()
     if login_session['user_id'] != editedItem.user_id:
-        # TODO update these one liner scripts and conform them to PEP8
-        return "<script>function myFunction() {alert('You are not authorized to edit menu items to this restaurant. Please create your own restaurant in order to edit items.');}</script><body onload='myFunction()'>"
+        return "<script>function myFunction() {alert('You are not authorized\
+            to edit this item. Please create your own item\
+            to edit.');}</script><body onload='myFunction()'>"
     if request.method == 'POST':
         if request.form['name']:
             editedItem.name = request.form['name']
@@ -294,21 +278,26 @@ def editItem(category_name, item_name):
         session.add(editedItem)
         session.commit()
         flash('Item Successfully Edited')
-        return redirect(url_for('showItems', category_name=editedItem.category.name))
+        return redirect(url_for('showItems',
+                                category_name=editedItem.category.name))
     else:
-        return render_template('edititem.html',  # category_id=editedItem.category_id, item_id=item_id, 
-            item=editedItem)
+        return render_template('edititem.html', item=editedItem)
 
 
 # Delete a menu item
-@app.route('/catalog/<string:category_name>/<string:item_name>/delete', methods=['GET', 'POST'])
+@app.route('/catalog/<string:category_name>/<string:item_name>/delete',
+           methods=['GET', 'POST'])
 def deleteItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
     category = session.query(Category).filter_by(name=category_name).one()
-    itemToDelete = session.query(Item).filter(Item.name == item_name, Category.name == category_name).one()
+    itemToDelete = session.query(Item).filter(Item.name == item_name,
+                                              Category.name ==
+                                              category_name).one()
     if login_session['user_id'] != itemToDelete.user_id:
-        return "<script>function myFunction() {alert('You are not authorized to delete menu items to this restaurant. Please create your own restaurant in order to delete items.');}</script><body onload='myFunction()'>"
+        return "<script>function myFunction() {alert('You are not authorized\
+            to delete this item. Please create your own item\
+            to delete.');}</script><body onload='myFunction()'>"
     if request.method == 'POST':
         session.delete(itemToDelete)
         session.commit()
