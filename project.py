@@ -28,13 +28,16 @@ import requests
 
 app = Flask(__name__)
 
-CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
+CLIENT_SECRETS_PATH = '/var/www/catalog/item-catalog/client_secrets.json'
+CLIENT_SECRETS = json.loads(
+    open(CLIENT_SECRETS_PATH, 'r').read())
+CLIENT_ID = CLIENT_SECRETS['web']['client_id']
 APPLICATION_NAME = "Item Catalog Application"
+SECRET_KEY = CLIENT_SECRETS['web']['secret_key']
+app.secret_key = SECRET_KEY
 
 # Connect to Database and create database session
-engine = create_engine('sqlite:///itemcatalog.db',
-                       connect_args={'check_same_thread': False}, echo=True)
+engine = create_engine('postgresql://catalog:categoryis@localhost:5432/catalog')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -62,7 +65,7 @@ def gconnect():
     code = request.data
     try:
         # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
+        oauth_flow = flow_from_clientsecrets(CLIENT_SECRETS_PATH, scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
@@ -312,7 +315,7 @@ def deleteItem(category_name, item_name):
         flash('Item Successfully Deleted')
         return redirect(url_for('showItems', category_name=category_name))
     else:
-        return render_template('deleteItem.html', item=itemToDelete)
+        return render_template('deleteitem.html', item=itemToDelete)
 
 
 @app.route('/disconnect')
@@ -336,6 +339,6 @@ def disconnect():
 
 
 if __name__ == '__main__':
-    app.secret_key = 'super_secret_key'
+    # app.secret_key = 'super_secret_key'
     # app.debug = True
     app.run(host='0.0.0.0', port=8000)

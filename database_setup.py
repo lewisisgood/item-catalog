@@ -1,4 +1,3 @@
-"""Xxx."""
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -58,9 +57,5 @@ class Item(Base):
 
 
 if __name__ == '__main__':
-    engine = create_engine('sqlite:///itemcatalog.db',
-                           connect_args={'check_same_thread': False})
+    engine = create_engine('postgresql://catalog:categoryis@localhost:5432/catalog')
     Base.metadata.create_all(engine)
-    # for view
-    # engine = create_engine('sqlite:///itemcatalog.db',
-    # connect_args={'check_same_thread': False})
